@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SBS神戸第一センター 到着確認</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700;900&display=swap');
+
+:root {
+  --bg:      #07090f;
+  --surface: #0f1420;
+  --sur2:    #161d2e;
+  --border:  #1e2d47;
+  --blue:    #1a73e8;
+  --blue-l:  #4da3ff;
+  --ok:      #00c853;
+  --warn:    #ffab00;
+  --danger:  #f44336;
+  --text:    #dde8f8;
+  --muted:   #4d6380;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  padding-bottom: 48px;
+}
+
+/* ── ヘッダー ── */
+.hdr {
+  background: linear-gradient(135deg, #001a4d 0%, #003580 100%);
+  padding: 22px 20px 18px;
+  border-bottom: 3px solid #0057b7;
+}
+.hdr-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 20px;
+  padding: 3px 12px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.65);
+  margin-bottom: 10px;
+  letter-spacing: 0.06em;
+}
+.hdr-name {
+  font-size: 26px;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.15;
+  margin-bottom: 6px;
+}
+.hdr-addr {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+}
+
+/* ── 設定バー ── */
+.cfg-bar {
+  padding: 10px 16px;
+  text-align: right;
+}
+.cfg-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--muted);
+  font-size: 12px;
+  font-family: 'Noto Sans JP', sans-serif;
+  padding: 5px 14px;
+  cursor: pointer;
+}
+.cfg-panel {
+  margin: 0 16px 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  display: none;
+}
+.cfg-panel.open { display: block; }
+.f-label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.f-input {
+  width: 100%;
+  background: var(--sur2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px; color: var(--text);
+  font-family: 'Noto Sans JP', sans-serif;
+  outline: none;
+  margin-bottom: 10px;
+}
+.f-input:focus { border-color: var(--blue); }
+.btn-save {
+  width: 100%;
+  padding: 11px;
+  background: var(--blue);
+  color: #fff;
+  border: none; border-radius: 8px;
+  font-size: 14px; font-weight: 700;
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer;
+}
+
+/* ── 地図 ── */
+.map-wrap {
+  margin: 12px 16px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  position: relative;
+}
+.map-wrap iframe {
+  width: 100%;
+  height: 240px;
+  display: block;
+  border: none;
+}
+.map-open-btn {
+  position: absolute;
+  bottom: 10px; right: 10px;
+  background: #fff;
+  color: #1a73e8;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px; font-weight: 700;
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  display: flex; align-items: center; gap: 5px;
+}
+
+/* ── メインカード ── */
+.card {
+  margin: 0 16px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.card-head {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 15px; font-weight: 700;
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* ── GPS ── */
+.gps-area { padding: 14px 16px; }
+.btn-gps {
+  width: 100%;
+  padding: 16px;
+  background: var(--sur2);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 16px; font-weight: 700;
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: border-color 0.2s;
+}
+.btn-gps:hover:not(:disabled) { border-color: var(--blue); }
+.btn-gps:disabled { opacity: 0.5; cursor: default; }
+
+.gps-result {
+  margin-top: 12px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  display: none;
+  animation: up 0.3s ease;
+}
+.gps-result.near   { background: rgba(0,200,83,0.1);  border: 1px solid rgba(0,200,83,0.3);  }
+.gps-result.mid    { background: rgba(255,171,0,0.1); border: 1px solid rgba(255,171,0,0.3); }
+.gps-result.far    { background: rgba(244,67,54,0.1); border: 1px solid rgba(244,67,54,0.3); }
+.gps-result.nopos  { background: rgba(77,99,128,0.1); border: 1px solid var(--border); }
+
+.gr-main  { font-size: 18px; font-weight: 700; }
+.gr-sub   { font-size: 12px; margin-top: 4px; opacity: 0.75; }
+
+/* ── メール送信 ── */
+.mail-area { padding: 0 16px 16px; }
+.btn-mail {
+  width: 100%;
+  padding: 17px;
+  background: linear-gradient(135deg, #0057b7, #1a73e8);
+  color: #fff;
+  border: none; border-radius: 12px;
+  font-size: 17px; font-weight: 700;
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: 0 4px 16px rgba(26,115,232,0.35);
+  transition: all 0.2s;
+}
+.btn-mail:hover:not(:disabled) { transform: scale(1.01); }
+.btn-mail:disabled { opacity: 0.4; cursor: default; transform: none; }
+.mail-hint { font-size: 11px; color: var(--muted); margin-top: 6px; text-align: center; }
+
+/* ── 完了 ── */
+.done-card {
+  margin: 0 16px 12px;
+  background: linear-gradient(135deg, rgba(0,87,183,0.12), rgba(0,200,83,0.07));
+  border: 1px solid rgba(0,200,83,0.3);
+  border-radius: 14px;
+  padding: 28px 20px;
+  text-align: center;
+  display: none;
+  animation: up 0.4s ease;
+}
+.done-icon  { font-size: 52px; margin-bottom: 10px; }
+.done-title { font-size: 22px; font-weight: 900; color: var(--ok); margin-bottom: 8px; }
+.done-meta  { font-size: 13px; color: var(--muted); }
+
+/* ── 履歴 ── */
+.hist-wrap  { padding: 0 16px; }
+.hist-label {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
+  color: var(--muted); margin-bottom: 8px; text-transform: uppercase;
+}
+.hist-list  { display: flex; flex-direction: column; gap: 6px; }
+.hist-item  {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex; align-items: center; gap: 10px;
+  animation: up 0.3s ease;
+}
+.hist-item.ok   { border-left: 3px solid var(--ok); }
+.hist-item.warn { border-left: 3px solid var(--warn); }
+.hi-info { flex: 1; }
+.hi-time { font-size: 14px; font-weight: 600; }
+.hi-dist { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.hi-badge {
+  font-size: 12px; font-weight: 700;
+  padding: 3px 9px; border-radius: 20px;
+  background: var(--sur2);
+}
+
+@keyframes up {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<!-- ヘッダー -->
+<div class="hdr">
+  <div class="hdr-badge">📦 配送先確認</div>
+  <div class="hdr-name">SBS神戸<br>第一センター</div>
+  <div class="hdr-addr">📍 神戸市東灘区魚崎南町４丁目４−１０</div>
+</div>
+
+<!-- 設定 -->
+<div class="cfg-bar">
+  <button class="cfg-btn" onclick="toggleCfg()">⚙️ メール設定</button>
+</div>
+<div class="cfg-panel" id="cfgPanel">
+  <div class="f-label">送信先メールアドレス</div>
+  <input class="f-input" id="cfgEmail" placeholder="kanri@example.com">
+  <div class="f-label">CCアドレス（任意）</div>
+  <input class="f-input" id="cfgCc" placeholder="buchou@example.com">
+  <button class="btn-save" onclick="saveCfg()">💾 保存する</button>
+  <div id="cfgMsg" style="font-size:12px;color:var(--ok);margin-top:8px;display:none">✅ 保存しました</div>
+</div>
+
+<!-- 地図 -->
+<div class="map-wrap">
+  <iframe
+    src="https://maps.google.com/maps?q=34.709565,135.2723603&z=17&output=embed&hl=ja"
+    allowfullscreen loading="lazy">
+  </iframe>
+  <button class="map-open-btn" onclick="openNavi()">🗺️ ナビ開始</button>
+</div>
+
+<!-- GPS確認 -->
+<div class="card">
+  <div class="card-head">📡 STEP 1　現在地を確認する</div>
+  <div class="gps-area">
+    <button class="btn-gps" id="gpsBtn" onclick="checkGPS()">
+      📍 GPS確認
+    </button>
+    <div class="gps-result" id="gpsResult">
+      <div class="gr-main" id="grMain"></div>
+      <div class="gr-sub"  id="grSub"></div>
+    </div>
+  </div>
+
+  <!-- メール送信（GPS後に有効化） -->
+  <div class="mail-area">
+    <button class="btn-mail" id="mailBtn" onclick="sendMail()" disabled>
+      ✉️ メールで報告する
+    </button>
+    <div class="mail-hint">端末のメールアプリが開きます</div>
+  </div>
+</div>
+
+<!-- 完了 -->
+<div class="done-card" id="doneCard">
+  <div class="done-icon">✅</div>
+  <div class="done-title">送信完了</div>
+  <div class="done-meta" id="doneMeta"></div>
+</div>
+
+<!-- 履歴 -->
+<div class="hist-wrap">
+  <div class="hist-label">📋 本日の確認履歴</div>
+  <div class="hist-list" id="histList">
+    <div style="font-size:13px;color:var(--muted);padding:6px 0">まだ記録がありません</div>
+  </div>
+</div>
+
+<script>
+// ── 配送先情報 ──
+const DEST = { lat: 34.709565, lng: 135.2723603, name: 'SBS神戸第一センター', addr: '兵庫県神戸市東灘区魚崎南町４丁目４−１０' };
+
+// ── 状態 ──
+let gpsData  = null; // { dist, distStr, cls }
+let history  = JSON.parse(sessionStorage.getItem('sbsHist') || '[]');
+
+// ── 設定 ──
+let emailTo = localStorage.getItem('sbs_email') || '';
+let emailCc = localStorage.getItem('sbs_cc')    || '';
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('cfgEmail').value = emailTo;
+  document.getElementById('cfgCc').value    = emailCc;
+  renderHist();
+});
+
+function toggleCfg() {
+  document.getElementById('cfgPanel').classList.toggle('open');
+}
+function saveCfg() {
+  emailTo = document.getElementById('cfgEmail').value.trim();
+  emailCc = document.getElementById('cfgCc').value.trim();
+  localStorage.setItem('sbs_email', emailTo);
+  localStorage.setItem('sbs_cc',    emailCc);
+  const m = document.getElementById('cfgMsg');
+  m.style.display = 'block';
+  setTimeout(() => m.style.display = 'none', 2000);
+}
+
+// ── ナビ ──
+function openNavi() {
+  window.open(`https://www.google.com/maps/dir/?api=1&destination=${DEST.lat},${DEST.lng}&travelmode=driving`, '_blank');
+}
+
+// ── GPS ──
+function checkGPS() {
+  const btn = document.getElementById('gpsBtn');
+  btn.disabled = true;
+  btn.innerHTML = '📡 取得中...';
+
+  if (!navigator.geolocation) {
+    showGPS('nopos', '⚠️ GPS非対応', 'ブラウザがGPSに対応していません', null);
+    btn.disabled = false; btn.innerHTML = '📍 GPS確認';
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(pos => {
+    const dist = calcDist(pos.coords.latitude, pos.coords.longitude, DEST.lat, DEST.lng);
+    const distStr = dist < 1000 ? `${Math.round(dist)}m` : `${(dist/1000).toFixed(1)}km`;
+
+    let cls, icon, msg;
+    if (dist <= 300) {
+      cls = 'near'; icon = '✅'; msg = '配送先の近くにいます';
+    } else if (dist <= 1000) {
+      cls = 'mid';  icon = '🟡'; msg = '付近にいます。場所を再確認してください';
+    } else {
+      cls = 'far';  icon = '🚨'; msg = '配送先から離れています！場所を確認してください';
+    }
+
+    gpsData = { dist, distStr, cls };
+    showGPS(cls, `${icon} ${distStr}`, msg, dist);
+
+    btn.disabled = false;
+    btn.innerHTML = '🔄 再確認する';
+    document.getElementById('mailBtn').disabled = false;
+
+  }, err => {
+    showGPS('nopos', '❌ 取得できませんでした', 'GPS許可を確認してください', null);
+    btn.disabled = false;
+    btn.innerHTML = '📍 再試行する';
+  }, { enableHighAccuracy: true, timeout: 12000 });
+}
+
+function showGPS(cls, main, sub) {
+  const el = document.getElementById('gpsResult');
+  el.className = `gps-result ${cls}`;
+  document.getElementById('grMain').textContent = main;
+  document.getElementById('grSub').textContent  = sub;
+  el.style.display = 'block';
+}
+
+function calcDist(la1, lo1, la2, lo2) {
+  const R = 6371000, d2r = Math.PI/180;
+  const dLa = (la2-la1)*d2r, dLo = (lo2-lo1)*d2r;
+  const a = Math.sin(dLa/2)**2 + Math.cos(la1*d2r)*Math.cos(la2*d2r)*Math.sin(dLo/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ── メール ──
+function sendMail() {
+  const now   = new Date();
+  const time  = now.toLocaleTimeString('ja-JP', { hour:'2-digit', minute:'2-digit' });
+  const date  = now.toLocaleDateString('ja-JP');
+  const dist  = gpsData ? gpsData.distStr : '未確認';
+  const judge = gpsData && gpsData.dist <= 300 ? '✅ 正常（配送先付近を確認）'
+              : gpsData ? '⚠️ 要確認（距離あり）'
+              : '―';
+
+  const to   = emailTo;
+  const cc   = emailCc ? `&cc=${encodeURIComponent(emailCc)}` : '';
+  const subj = encodeURIComponent(`【到着確認】${DEST.name}　${date} ${time}`);
+  const body = encodeURIComponent(
+`配送先到着確認レポート
+━━━━━━━━━━━━━━━━
+配送先   ：${DEST.name}
+住所     ：${DEST.addr}
+確認日時 ：${date} ${time}
+GPS距離  ：${dist}
+判定     ：${judge}
+━━━━━━━━━━━━━━━━
+`);
+
+  window.location.href = `mailto:${to}?subject=${subj}&body=${body}${cc}`;
+
+  // 完了処理
+  const entry = { time, dist, ok: gpsData && gpsData.dist <= 300 };
+  history.unshift(entry);
+  sessionStorage.setItem('sbsHist', JSON.stringify(history));
+  renderHist();
+
+  document.getElementById('doneCard').style.display = 'block';
+  document.getElementById('doneMeta').textContent = `${date} ${time}　GPS:${dist}`;
+  document.getElementById('doneCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  document.getElementById('mailBtn').disabled = true;
+}
+
+// ── 履歴 ──
+function renderHist() {
+  const list = document.getElementById('histList');
+  if (!history.length) {
+    list.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:6px 0">まだ記録がありません</div>';
+    return;
+  }
+  list.innerHTML = history.map(h => `
+    <div class="hist-item ${h.ok ? 'ok' : 'warn'}">
+      <div style="font-size:20px">${h.ok ? '✅' : '⚠️'}</div>
+      <div class="hi-info">
+        <div class="hi-time">${h.time}</div>
+        <div class="hi-dist">GPS: ${h.dist}</div>
+      </div>
+      <div class="hi-badge" style="color:${h.ok ? 'var(--ok)' : 'var(--warn)'}">${h.dist}</div>
+    </div>`).join('');
+}
+</script>
+</body>
+</html>
